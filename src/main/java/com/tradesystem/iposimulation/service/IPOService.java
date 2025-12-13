@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -38,6 +39,25 @@ public class IPOService {
 
     public List<IPOStock> listAllIPOs() {
         return repository.findAllStocks();
+    }
+
+    public List<IPOStock> listIPOsForDisplay() {
+        LocalDateTime now = LocalDateTime.now();
+        return repository.findAllStocks().stream()
+                .sorted(Comparator
+                        .comparingInt((IPOStock stock) -> ipoStatusOrder(stock, now))
+                        .thenComparing(IPOStock::getDeadline))
+                .toList();
+    }
+
+    private int ipoStatusOrder(IPOStock stock, LocalDateTime now) {
+        if (!stock.isDrawExecuted() && !stock.isExpired(now)) {
+            return 0; // Available
+        }
+        if (!stock.isDrawExecuted() && stock.isExpired(now)) {
+            return 1; // Ended (deadline passed, draw pending)
+        }
+        return 2; // Finished (draw executed)
     }
 
     public IPOApplicationResult apply(ApplyIPOForm form) {
@@ -116,4 +136,5 @@ public class IPOService {
     public List<IPORecord> getHistory(String investorId) {
         return repository.findRecordsByInvestor(investorId);
     }
+
 }

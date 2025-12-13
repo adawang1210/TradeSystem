@@ -47,9 +47,10 @@ public class IPOController {
         Set<String> appliedStockIds = existingRecords.stream()
                 .map(IPORecord::getStockId)
                 .collect(Collectors.toSet());
-        Map<String, String> stockNames = ipoService.listAllIPOs().stream()
+        List<com.tradesystem.iposimulation.model.IPOStock> ipos = ipoService.listIPOsForDisplay();
+        Map<String, String> stockNames = ipos.stream()
                 .collect(Collectors.toMap(stock -> stock.getStockId(), stock -> stock.getStockName()));
-        model.addAttribute("ipos", ipoService.listOpenIPOs());
+        model.addAttribute("ipos", ipos);
         model.addAttribute("applyForm", new ApplyIPOForm());
         model.addAttribute("appliedStockIds", appliedStockIds);
         model.addAttribute("investor", investor);
@@ -65,7 +66,7 @@ public class IPOController {
                         HttpSession session,
                         RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
-            model.addAttribute("ipos", ipoService.listOpenIPOs());
+            model.addAttribute("ipos", ipoService.listIPOsForDisplay());
             return "ipo/list";
         }
         String redirect = requireUser(session);
@@ -77,7 +78,7 @@ public class IPOController {
         IPOApplicationResult result = ipoService.apply(form);
         if (!result.isSuccess()) {
             model.addAttribute("flashMessage", result.getMessage());
-            model.addAttribute("ipos", ipoService.listOpenIPOs());
+            model.addAttribute("ipos", ipoService.listIPOsForDisplay());
             model.addAttribute("applyForm", new ApplyIPOForm());
             return "ipo/list";
         }

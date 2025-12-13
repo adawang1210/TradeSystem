@@ -42,13 +42,19 @@
             <td th:text="${ipo.totalQuantity}"></td>
             <td th:text="${#temporals.format(ipo.deadline, 'yyyy-MM-dd HH:mm')}"></td>
             <td>
-                <div th:if="${appliedStockIds.contains(ipo.stockId)}">
-                    <span class="status-tag won">Applied</span>
-                </div>
-                <form th:if="${!appliedStockIds.contains(ipo.stockId)}" method="post" th:action="@{/ipo/apply}" class="apply-form">
+                <button class="btn btn-dark btn-sm" th:if="${ipo.drawExecuted}" disabled>🏁 FINISHED</button>
+                <button class="btn btn-success btn-sm"
+                        th:if="${!ipo.drawExecuted and #sets.contains(appliedStockIds, ipo.stockId)}"
+                        disabled>Applied</button>
+                <button class="btn btn-secondary btn-sm"
+                        th:if="${!ipo.drawExecuted and !#sets.contains(appliedStockIds, ipo.stockId) and ipo.deadline.isBefore(T(java.time.LocalDateTime).now())}"
+                        disabled>Ended</button>
+                <form th:if="${!ipo.drawExecuted and !#sets.contains(appliedStockIds, ipo.stockId) and !ipo.deadline.isBefore(T(java.time.LocalDateTime).now())}"
+                      method="post"
+                      th:action="@{/ipo/apply}"
+                      class="apply-form">
                     <input type="hidden" name="stockId" th:value="${ipo.stockId}"/>
-                    <span class="limit-label">Limit: 1 Share</span>
-                    <button type="submit">Apply</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Apply</button>
                 </form>
             </td>
         </tr>
@@ -77,10 +83,12 @@
                     <td th:text="${'$' + #numbers.formatDecimal(record.pricePerLot, 1, 'COMMA', 2, 'POINT')}"></td>
                     <td th:text="${record.quantity}"></td>
                     <td>
-                        <span class="badge"
-                              th:classappend="${record.status.name() == 'PENDING'} ? ' bg-warning text-dark' :
-                                               (record.status.name() == 'WON' ? ' bg-success' : ' bg-danger')"
-                              th:text="${record.status}"></span>
+                        <div th:switch="${record.status.name()}">
+                            <span th:case="'PENDING'" class="badge bg-warning text-dark">PENDING</span>
+                            <span th:case="'WON'" class="badge bg-success">WON</span>
+                            <span th:case="'LOST'" class="badge bg-danger">LOST</span>
+                            <span th:case="*" class="badge bg-secondary" th:text="${record.status}"></span>
+                        </div>
                     </td>
                     <td th:text="${#temporals.format(record.applyTime, 'yyyy-MM-dd HH:mm')}"></td>
                 </tr>
