@@ -58,4 +58,14 @@ public class InvestorService {
     public List<IPORecord> history(String investorId) {
         return repository.findRecordsByInvestor(investorId);
     }
+
+    public void deposit(String investorId, BigDecimal amount) {
+        if (amount == null || amount.signum() <= 0) {
+            throw new IllegalArgumentException("Deposit amount must be positive");
+        }
+        Investor investor = repository.findInvestor(investorId)
+                .orElseThrow(() -> new IllegalArgumentException("Investor not found"));
+        investor.addBalance(amount);
+        repository.saveInvestor(investor);
+    }
 }
