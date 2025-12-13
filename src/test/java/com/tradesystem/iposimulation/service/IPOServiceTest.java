@@ -32,7 +32,9 @@ class IPOServiceTest {
     void shouldApplySuccessfullyWhenAllChecksPass() {
         Investor investor = createInvestor("INV-TEST", new BigDecimal("1000.00"));
         IPOStock stock = createOpenStock("STK-TEST", new BigDecimal("10.00"), 100);
-        ApplyIPOForm form = formWithQuantity(investor.getInvestorId(), stock.getStockId(), 5);
+        ApplyIPOForm form = new ApplyIPOForm();
+        form.setInvestorId(investor.getInvestorId());
+        form.setStockId(stock.getStockId());
 
         IPOApplicationResult result = ipoService.apply(form);
 
@@ -44,15 +46,17 @@ class IPOServiceTest {
                 .first()
                 .satisfies(record -> {
                     assertThat(record.getStatus()).isEqualTo(Status.PENDING);
-                    assertThat(record.getQuantity()).isEqualTo(5);
+                    assertThat(record.getQuantity()).isEqualTo(1);
                 });
     }
 
     @Test
     void shouldFailWhenInvestorLacksFunds() {
-        Investor investor = createInvestor("INV-LOW", new BigDecimal("10.00"));
+        Investor investor = createInvestor("INV-LOW", new BigDecimal("5.00"));
         IPOStock stock = createOpenStock("STK-LOW", new BigDecimal("10.00"), 100);
-        ApplyIPOForm form = formWithQuantity(investor.getInvestorId(), stock.getStockId(), 2);
+        ApplyIPOForm form = new ApplyIPOForm();
+        form.setInvestorId(investor.getInvestorId());
+        form.setStockId(stock.getStockId());
 
         IPOApplicationResult result = ipoService.apply(form);
 
@@ -67,7 +71,7 @@ class IPOServiceTest {
                 .first()
                 .extracting(record -> record.getStatus())
                 .isEqualTo(Status.FAILED_FUNDS);
-        assertThat(investor.getBalance()).isEqualByComparingTo("10.00");
+        assertThat(investor.getBalance()).isEqualByComparingTo("5.00");
     }
 
     private Investor createInvestor(String id, BigDecimal balance) {
@@ -83,11 +87,4 @@ class IPOServiceTest {
         return stock;
     }
 
-    private ApplyIPOForm formWithQuantity(String investorId, String stockId, int quantity) {
-        ApplyIPOForm form = new ApplyIPOForm();
-        form.setInvestorId(investorId);
-        form.setStockId(stockId);
-        form.setQuantity(quantity);
-        return form;
-    }
 }

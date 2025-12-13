@@ -25,9 +25,9 @@
                 <div th:if="${appliedStockIds.contains(ipo.stockId)}">
                     <span class="status-tag won">Applied</span>
                 </div>
-                <form th:if="${!appliedStockIds.contains(ipo.stockId)}" method="post" th:action="@{/ipo/apply}">
+                <form th:if="${!appliedStockIds.contains(ipo.stockId)}" method="post" th:action="@{/ipo/apply}" class="apply-form">
                     <input type="hidden" name="stockId" th:value="${ipo.stockId}"/>
-                    <input type="number" name="quantity" min="1" value="1" required/>
+                    <span class="limit-label">Limit: 1 Share</span>
                     <button type="submit">Apply</button>
                 </form>
             </td>

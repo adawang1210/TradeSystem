@@ -62,7 +62,6 @@ class IPOConcurrencyTest {
                 ApplyIPOForm form = new ApplyIPOForm();
                 form.setInvestorId("INV-SIM-" + idx);
                 form.setStockId(stock.getStockId());
-                form.setQuantity(1);
                 return ipoService.apply(form);
             }));
         }

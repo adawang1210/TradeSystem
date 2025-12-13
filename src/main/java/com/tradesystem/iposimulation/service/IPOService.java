@@ -61,7 +61,8 @@ public class IPOService {
             return new IPOApplicationResult(false, "Duplicate application detected", null);
         }
 
-        BigDecimal requiredFunds = stock.getPrice().multiply(BigDecimal.valueOf(form.getQuantity()));
+        final int quantity = 1;
+        BigDecimal requiredFunds = stock.getPrice();
 
         String lockKey = investor.getInvestorId() + ":" + stock.getStockId();
         Object mutex = locks.computeIfAbsent(lockKey, key -> new Object());
@@ -71,9 +72,9 @@ public class IPOService {
             if (repository.hasRecord(investor.getInvestorId(), stock.getStockId())) {
                 return new IPOApplicationResult(false, "Duplicate application detected", null);
             }
-            boolean reserved = repository.reserveStockLots(stock.getStockId(), form.getQuantity(), stock.getTotalQuantity());
+            boolean reserved = repository.reserveStockLots(stock.getStockId(), quantity, stock.getTotalQuantity());
             if (!reserved) {
-                IPORecord failed = createRecord(investor, stock, form.getQuantity(), Status.FAILED_SOLD_OUT);
+                IPORecord failed = createRecord(investor, stock, quantity, Status.FAILED_SOLD_OUT);
                 failed.markFailed(Status.FAILED_SOLD_OUT, "IPO sold out");
                 repository.saveRecord(failed);
                 investor.appendRecord(failed);
@@ -83,8 +84,8 @@ public class IPOService {
 
             boolean deducted = investor.deductBalance(requiredFunds);
             if (!deducted) {
-                repository.releaseStockLots(stock.getStockId(), form.getQuantity());
-                IPORecord failed = createRecord(investor, stock, form.getQuantity(), Status.FAILED_FUNDS);
+                repository.releaseStockLots(stock.getStockId(), quantity);
+                IPORecord failed = createRecord(investor, stock, quantity, Status.FAILED_FUNDS);
                 failed.markFailed(Status.FAILED_FUNDS, "Insufficient funds");
                 repository.saveRecord(failed);
                 investor.appendRecord(failed);
@@ -92,7 +93,7 @@ public class IPOService {
                 return new IPOApplicationResult(false, "Insufficient balance", failed);
             }
 
-            IPORecord record = createRecord(investor, stock, form.getQuantity(), Status.PENDING);
+            IPORecord record = createRecord(investor, stock, quantity, Status.PENDING);
             repository.saveRecord(record);
             investor.appendRecord(record);
             log.info("Investor {} applied for {} ({})", investor.getInvestorId(), stock.getStockName(), record.getRecordId());
