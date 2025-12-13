@@ -1,0 +1,23 @@
+# Java / Maven
+/target/
+/out/
+/bin/
+/build/
+*.class
+*.log
+
+# Gradle metadata
+/.gradle/
+
+# IntelliJ / VS Code
+/.idea/
+*.iml
+.vscode/
+
+# Operating system detritus
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.*

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{_layout :: layout(~{::body})}">
+<body>
+<div class="card">
+    <h2>My Application Records</h2>
+    <p style="margin-top:-0.5rem;">
+        <a th:href="@{/ipo/list}">&larr; Back to Available IPOs</a>
+    </p>
+    <table>
+        <thead>
+        <tr>
+            <th>Stock</th>
+            <th>Quantity</th>
+            <th>Status</th>
+            <th>Applied At</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="record : ${records}">
+            <td th:text="${record.stockId}"></td>
+            <td th:text="${record.quantity}"></td>
+            <td>
+                <span class="status-tag"
+                      th:classappend="${record.status.name().toLowerCase()}">
+                    <span th:text="${record.status}"></span>
+                </span>
+            </td>
+            <td th:text="${#temporals.format(record.applyTime, 'yyyy-MM-dd HH:mm')}"></td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(records)}">
+            <td colspan="4" style="text-align:center;color:#6b7280;padding:1rem;">
+                No applications yet. Visit the <a th:href="@{/ipo/list}">IPO list</a> to apply.
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

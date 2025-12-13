@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="layout(content)">
+<head>
+    <meta charset="UTF-8">
+    <title>TradeSystem IPO</title>
+    <link rel="stylesheet" th:href="@{/css/main.css}"/>
+</head>
+<body>
+<header>
+    <div class="brand">
+        <h1>TradeSystem IPO Simulation</h1>
+        <small>In-memory IPO subscription demo</small>
+    </div>
+    <div class="header-right">
+        <div class="user-info" th:if="${currentUserName}">
+            <span class="label">目前使用者</span>
+            <span class="value" th:text="${currentUserName}">Demo</span>
+        </div>
+        <nav>
+            <a th:href="@{/ipo/list}">Investor Portal</a>
+            <a th:href="@{/admin}">Admin Portal</a>
+            <a th:href="@{/logout}">Logout</a>
+        </nav>
+    </div>
+</header>
+<main>
+    <div th:if="${flashMessage}" class="card" style="background:#dbeafe;color:#1e3a8a;" th:text="${flashMessage}"></div>
+    <div th:replace="${content}"></div>
+</main>
+<footer>
+    <small>&copy; 2025 TradeSystem OOAD Project</small>
+</footer>
+</body>
+</html>

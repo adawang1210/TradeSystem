@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="_layout :: layout(~{::body})">
+<body>
+<div class="card">
+    <h2>Available IPOs</h2>
+    <table>
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Symbol</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Deadline</th>
+            <th>Apply</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="ipo : ${ipos}">
+            <td th:text="${ipo.stockName}"></td>
+            <td th:text="${ipo.stockSymbol}"></td>
+            <td th:text="${ipo.price}"></td>
+            <td th:text="${ipo.totalQuantity}"></td>
+            <td th:text="${#temporals.format(ipo.deadline, 'yyyy-MM-dd HH:mm')}"></td>
+            <td>
+                <div th:if="${appliedStockIds.contains(ipo.stockId)}">
+                    <span class="status-tag won">Applied</span>
+                </div>
+                <form th:if="${!appliedStockIds.contains(ipo.stockId)}" method="post" th:action="@{/ipo/apply}">
+                    <input type="hidden" name="stockId" th:value="${ipo.stockId}"/>
+                    <input type="number" name="quantity" min="1" value="1" required/>
+                    <button type="submit">Apply</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <a th:href="@{/ipo/records}">View My Application Records</a>
+</div>
+</body>
+</html>

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{_layout :: layout(~{::body})}">
+<body>
+<div class="card">
+    <h2>Create an Account</h2>
+    <p style="margin-top:-0.5rem;color:#6b7280;">New investors receive an initial balance of $1,000,000.</p>
+
+    <div th:if="${error}" style="margin-bottom:1rem;color:#b91c1c;">
+        <strong th:text="${error}"></strong>
+    </div>
+
+    <form th:action="@{/register}" method="post">
+        <label for="userId">User ID</label>
+        <input id="userId" type="text" name="userId" placeholder="your-unique-id" th:value="${userId}" required>
+
+        <label for="displayName">Display Name</label>
+        <input id="displayName" type="text" name="displayName" placeholder="Jane Investor" th:value="${displayName}" required>
+
+        <button type="submit">Sign Up</button>
+    </form>
+
+    <p style="margin-top:1rem;">
+        Already have an account? <a th:href="@{/login}">Log in here</a>.
+    </p>
+</div>
+</body>
+</html>

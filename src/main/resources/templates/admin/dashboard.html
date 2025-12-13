@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{_layout :: layout(~{::body})}">
+<body>
+<div class="card">
+    <h2>Admin Dashboard</h2>
+    <form th:action="@{/admin/publish}" method="post" th:object="${publishForm}">
+        <div class="grid">
+            <label>Stock Name
+                <input type="text" th:field="*{stockName}" required>
+            </label>
+            <label>Stock Symbol
+                <input type="text" th:field="*{stockSymbol}" required>
+            </label>
+            <label>Issuer Name
+                <input type="text" th:field="*{issuerName}" required>
+            </label>
+            <label>Price
+                <input type="number" th:field="*{price}" required step="0.01">
+            </label>
+            <label>Total Quantity
+                <input type="number" th:field="*{totalQuantity}" required>
+            </label>
+            <label>Deadline
+                <input type="datetime-local" th:field="*{deadline}" required>
+            </label>
+        </div>
+        <button type="submit">Publish IPO</button>
+    </form>
+</div>
+
+<div class="card">
+    <h3>Published IPOs</h3>
+    <table>
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Symbol</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Deadline</th>
+            <th>Status</th>
+            <th>Draw</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="ipo : ${ipos}">
+            <td th:text="${ipo.stockName}"></td>
+            <td th:text="${ipo.stockSymbol}"></td>
+            <td th:text="${ipo.price}"></td>
+            <td th:text="${ipo.totalQuantity}"></td>
+            <td th:text="${#temporals.format(ipo.deadline, 'yyyy-MM-dd HH:mm')}"></td>
+            <td>
+                <span th:if="${T(java.time.LocalDateTime).now().isBefore(ipo.deadline)}" class="status-tag won">OPEN</span>
+                <span th:if="${T(java.time.LocalDateTime).now().isAfter(ipo.deadline) and !ipo.drawExecuted}" class="status-tag lost">READY TO DRAW</span>
+                <span th:if="${ipo.drawExecuted}" class="status-tag pending">FINISHED</span>
+            </td>
+            <td>
+                <div th:if="${T(java.time.LocalDateTime).now().isBefore(ipo.deadline)}">
+                    Wait for Deadline
+                </div>
+                <div th:if="${ipo.drawExecuted}">
+                    Draw Completed
+                </div>
+                <form th:if="${T(java.time.LocalDateTime).now().isAfter(ipo.deadline) and !ipo.drawExecuted}"
+                      th:action="@{/admin/draw}" method="post" style="display:flex;flex-direction:column;gap:.5rem;">
+                    <input type="hidden" name="stockId" th:value="${ipo.stockId}">
+                    <label style="display:flex;align-items:center;gap:.5rem;">
+                        Refund losers?
+                        <input type="checkbox" name="refund" value="true">
+                    </label>
+                    <button type="submit">Execute Draw</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
