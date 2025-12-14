@@ -16,9 +16,7 @@
             <span class="label">目前使用者</span>
             <span class="value" th:text="${currentUserName}">Demo</span>
         </div>
-        <nav>
-            <a th:href="@{/ipo/list}">Investor Portal</a>
-            <a th:href="@{/admin}">Admin Portal</a>
+        <nav class="nav-logout-only">
             <a th:href="@{/logout}">Logout</a>
         </nav>
     </div>
@@ -30,5 +28,7 @@
 <footer>
     <small>&copy; 2025 TradeSystem OOAD Project</small>
 </footer>
+<script th:if="${@environment.getProperty('spring.devtools.livereload.enabled', 'true').equals('true')}"
+        src="http://localhost:35729/livereload.js?snipver=1"></script>
 </body>
 </html>

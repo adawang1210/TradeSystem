@@ -14,7 +14,7 @@
                 <span th:text="${'$' + #numbers.formatDecimal(investor.balance, 1, 'COMMA', 2, 'POINT')}"></span>
             </div>
             <form class="d-flex gap-2" method="post" th:action="@{/investor/deposit}">
-                <input type="number" class="form-control" name="amount" step="1000" min="1" placeholder="Amount" required>
+                <input type="number" class="form-control" name="amount" step="1" min="1" placeholder="Amount" required>
                 <button class="btn btn-primary" type="submit">Top Up</button>
             </form>
         </div>

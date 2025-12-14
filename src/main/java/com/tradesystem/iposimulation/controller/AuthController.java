@@ -1,5 +1,6 @@
 package com.tradesystem.iposimulation.controller;
 
+import com.tradesystem.iposimulation.model.Administrator;
 import com.tradesystem.iposimulation.service.InvestorService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.constraints.NotBlank;
@@ -29,6 +30,13 @@ public class AuthController {
 
     @PostMapping("/login")
     public String doLogin(@RequestParam("userId") @NotBlank String userId, HttpSession session) {
+        if ("admin".equals(userId)) {
+            Administrator admin = new Administrator("admin", "Administrator");
+            session.setAttribute("CURRENT_ADMIN", admin);
+            session.removeAttribute("CURRENT_USER");
+            return "redirect:/admin";
+        }
+        session.removeAttribute("CURRENT_ADMIN");
         session.setAttribute("CURRENT_USER", userId);
         investorService.loginOrCreate(userId);
         return "redirect:/ipo/list";

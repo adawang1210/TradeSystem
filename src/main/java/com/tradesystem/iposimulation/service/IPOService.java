@@ -1,7 +1,9 @@
 package com.tradesystem.iposimulation.service;
 
 import com.tradesystem.iposimulation.dto.ApplyIPOForm;
+import com.tradesystem.iposimulation.dto.DrawResult;
 import com.tradesystem.iposimulation.dto.IPOApplicationResult;
+import com.tradesystem.iposimulation.dto.PublishIPOForm;
 import com.tradesystem.iposimulation.model.IPORecord;
 import com.tradesystem.iposimulation.model.IPOStock;
 import com.tradesystem.iposimulation.model.Investor;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -137,4 +140,51 @@ public class IPOService {
         return repository.findRecordsByInvestor(investorId);
     }
 
+    public IPOStock publishIPO(PublishIPOForm form) {
+        IPOStock stock = new IPOStock(
+                repository.nextStockId(),
+                form.getStockName(),
+                form.getStockSymbol(),
+                form.getPrice(),
+                form.getTotalQuantity(),
+                form.getDeadline(),
+                form.getIssuerName());
+        repository.saveStock(stock);
+        return stock;
+    }
+
+    public DrawResult executeDraw(String stockId, boolean refundLosers) {
+        IPOStock stock = repository.findStock(stockId)
+                .orElseThrow(() -> new IllegalArgumentException("Stock not found"));
+        if (!stock.isExpired(LocalDateTime.now())) {
+            throw new IllegalStateException("Cannot draw before deadline");
+        }
+        if (stock.isDrawExecuted()) {
+            throw new IllegalStateException("Draw already executed");
+        }
+
+        List<IPORecord> pending = repository.findPendingByStock(stockId);
+        Collections.shuffle(pending);
+        int remaining = stock.getTotalQuantity();
+        int winners = 0;
+        int losers = 0;
+
+        for (IPORecord record : pending) {
+            if (remaining >= record.getQuantity()) {
+                record.markWon();
+                winners++;
+                remaining -= record.getQuantity();
+            } else {
+                record.markLost();
+                losers++;
+                if (refundLosers) {
+                    investorService.findInvestor(record.getInvestorId())
+                            .ifPresent(inv -> inv.addBalance(record.getPricePerLot().multiply(BigDecimal.valueOf(record.getQuantity()))));
+                }
+            }
+        }
+
+        stock.markDrawExecuted();
+        return new DrawResult(stock.getTotalQuantity() - remaining, pending.size(), winners, losers);
+    }
 }
