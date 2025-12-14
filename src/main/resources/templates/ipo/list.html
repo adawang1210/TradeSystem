@@ -49,7 +49,7 @@
                 <button class="btn btn-dark btn-sm" th:if="${ipo.drawExecuted}" disabled>🏁 FINISHED</button>
                 <button class="btn btn-success btn-sm"
                         th:if="${!ipo.drawExecuted and #sets.contains(appliedStockIds, ipo.stockId)}"
-                        disabled>Applied</button>
+                        disabled>✅ Applied</button>
                 <button class="btn btn-secondary btn-sm"
                         th:if="${!ipo.drawExecuted and !#sets.contains(appliedStockIds, ipo.stockId) and ipo.deadline.isBefore(T(java.time.LocalDateTime).now())}"
                         disabled>Ended</button>
@@ -90,7 +90,8 @@
                         <div th:switch="${record.status.name()}">
                             <span th:case="'PENDING'" class="badge bg-warning text-dark">PENDING</span>
                             <span th:case="'WON'" class="badge bg-success">WON</span>
-                            <span th:case="'LOST'" class="badge bg-danger">LOST</span>
+                            <span th:case="'LOST'" class="badge bg-secondary">LOST</span>
+                            <span th:case="'FAILED_FUNDS'" class="badge bg-danger">INSUFFICIENT FUNDS</span>
                             <span th:case="*" class="badge bg-secondary" th:text="${record.status}"></span>
                         </div>
                     </td>

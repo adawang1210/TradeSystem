@@ -20,10 +20,13 @@
             <td th:text="${record.stockId}"></td>
             <td th:text="${record.quantity}"></td>
             <td>
-                <span class="status-tag"
-                      th:classappend="${record.status.name().toLowerCase()}">
-                    <span th:text="${record.status}"></span>
-                </span>
+                <div th:switch="${record.status.name()}">
+                    <span th:case="'PENDING'" class="badge bg-warning text-dark">PENDING</span>
+                    <span th:case="'WON'" class="badge bg-success">WON</span>
+                    <span th:case="'LOST'" class="badge bg-secondary">LOST</span>
+                    <span th:case="'FAILED_FUNDS'" class="badge bg-danger">INSUFFICIENT FUNDS</span>
+                    <span th:case="*" class="badge bg-secondary" th:text="${record.status}"></span>
+                </div>
             </td>
             <td th:text="${#temporals.format(record.applyTime, 'yyyy-MM-dd HH:mm')}"></td>
         </tr>

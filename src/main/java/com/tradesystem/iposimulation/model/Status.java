@@ -7,8 +7,5 @@ public enum Status {
     PENDING,
     WON,
     LOST,
-    FAILED_FUNDS,
-    FAILED_DUPLICATE,
-    FAILED_DEADLINE,
-    FAILED_SOLD_OUT
+    FAILED_FUNDS
 }

@@ -76,11 +76,11 @@ class IPOConcurrencyTest {
         executor.shutdown();
 
         long successCount = results.stream().filter(IPOApplicationResult::isSuccess).count();
-        assertEquals(10, successCount, "Exactly 10 successful applications should be recorded");
+        assertEquals(50, successCount, "All valid applications should be accepted as PENDING");
 
         List<IPORecord> stockRecords = repository.findRecordsByStock(stock.getStockId());
         long pendingRecords = stockRecords.stream().filter(r -> r.getStatus() == Status.PENDING).count();
-        assertEquals(10, pendingRecords, "Only 10 records should hold stock allocations");
+        assertEquals(50, pendingRecords, "All records should remain PENDING before draw");
 
         Set<String> successInvestors = stockRecords.stream()
                 .filter(r -> r.getStatus() == Status.PENDING)
@@ -90,14 +90,7 @@ class IPOConcurrencyTest {
         for (int i = 0; i < 50; i++) {
             String investorId = "INV-SIM-" + i;
             BigDecimal balance = repository.findInvestor(investorId).map(Investor::getBalance).orElse(BigDecimal.ZERO);
-            if (successInvestors.contains(investorId)) {
-                assertEquals(new BigDecimal("900"), balance, "Successful investor should have funds deducted");
-            } else {
-                assertEquals(new BigDecimal("1000"), balance, "Failed investors retain full balance");
-            }
+            assertEquals(new BigDecimal("900"), balance, "Every applicant should have funds deducted and remain pending");
         }
-
-        long soldOutFailures = stockRecords.stream().filter(r -> r.getStatus() == Status.FAILED_SOLD_OUT).count();
-        assertTrue(soldOutFailures >= 40, "At least 40 investors should fail due to sold out stock");
     }
 }

@@ -77,6 +77,10 @@ public class IPOService {
         IPOStock stock = stockOpt.get();
         LocalDateTime now = LocalDateTime.now();
 
+        if (stock.getDeadline().isBefore(now)) {
+            throw new RuntimeException("IPO application has ended.");
+        }
+
         if (stock.isExpired(now)) {
             return new IPOApplicationResult(false, "IPO deadline passed", null);
         }
@@ -100,19 +104,8 @@ public class IPOService {
             if (repository.hasRecord(investor.getInvestorId(), stock.getStockId())) {
                 return new IPOApplicationResult(false, "Duplicate application detected", null);
             }
-            boolean reserved = repository.reserveStockLots(stock.getStockId(), quantity, stock.getTotalQuantity());
-            if (!reserved) {
-                IPORecord failed = createRecord(investor, stock, quantity, Status.FAILED_SOLD_OUT);
-                failed.markFailed(Status.FAILED_SOLD_OUT, "IPO sold out");
-                repository.saveRecord(failed);
-                investor.appendRecord(failed);
-                log.warn("FAILED_SOLD_OUT investor={} stock={}", investor.getInvestorId(), stock.getStockId());
-                return new IPOApplicationResult(false, "IPO sold out", failed);
-            }
-
             boolean deducted = investor.deductBalance(requiredFunds);
             if (!deducted) {
-                repository.releaseStockLots(stock.getStockId(), quantity);
                 log.warn("FAILED_FUNDS investor={} stock={}", investor.getInvestorId(), stock.getStockId());
                 throw new IllegalStateException("Insufficient balance");
             }
