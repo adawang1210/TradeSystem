@@ -87,6 +87,11 @@ public class IPOService {
         final int quantity = 1;
         BigDecimal requiredFunds = stock.getPrice();
 
+        BigDecimal totalCost = requiredFunds.multiply(BigDecimal.valueOf(quantity));
+        if (investor.getBalance().compareTo(totalCost) < 0) {
+            throw new IllegalStateException("Insufficient balance");
+        }
+
         String lockKey = investor.getInvestorId() + ":" + stock.getStockId();
         Object mutex = locks.computeIfAbsent(lockKey, key -> new Object());
 
@@ -108,12 +113,8 @@ public class IPOService {
             boolean deducted = investor.deductBalance(requiredFunds);
             if (!deducted) {
                 repository.releaseStockLots(stock.getStockId(), quantity);
-                IPORecord failed = createRecord(investor, stock, quantity, Status.FAILED_FUNDS);
-                failed.markFailed(Status.FAILED_FUNDS, "Insufficient funds");
-                repository.saveRecord(failed);
-                investor.appendRecord(failed);
                 log.warn("FAILED_FUNDS investor={} stock={}", investor.getInvestorId(), stock.getStockId());
-                return new IPOApplicationResult(false, "Insufficient balance", failed);
+                throw new IllegalStateException("Insufficient balance");
             }
 
             IPORecord record = createRecord(investor, stock, quantity, Status.PENDING);

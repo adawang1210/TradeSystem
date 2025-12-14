@@ -45,7 +45,7 @@ public class InvestorService {
     public Investor loginOrCreate(String investorId) {
         return repository.findInvestor(investorId)
                 .orElseGet(() -> {
-                    Investor investor = new Investor(investorId, investorId, new BigDecimal("100000"));
+                    Investor investor = new Investor(investorId, investorId, BigDecimal.ZERO);
                     repository.saveInvestor(investor);
                     return investor;
                 });

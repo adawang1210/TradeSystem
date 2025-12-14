@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class IPOServiceTest {
 
@@ -58,19 +59,10 @@ class IPOServiceTest {
         form.setInvestorId(investor.getInvestorId());
         form.setStockId(stock.getStockId());
 
-        IPOApplicationResult result = ipoService.apply(form);
-
-        assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getMessage()).isEqualTo("Insufficient balance");
-        assertThat(result.getRecord()).isNotNull();
-        assertThat(result.getRecord().getStatus()).isEqualTo(Status.FAILED_FUNDS);
-        assertThat(result.getRecord().getFailureReason()).isEqualTo("Insufficient funds");
-
-        assertThat(repository.findRecordsByInvestor(investor.getInvestorId()))
-                .hasSize(1)
-                .first()
-                .extracting(record -> record.getStatus())
-                .isEqualTo(Status.FAILED_FUNDS);
+        assertThatThrownBy(() -> ipoService.apply(form))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Insufficient balance");
+        assertThat(repository.findRecordsByInvestor(investor.getInvestorId())).isEmpty();
         assertThat(investor.getBalance()).isEqualByComparingTo("5.00");
     }
 

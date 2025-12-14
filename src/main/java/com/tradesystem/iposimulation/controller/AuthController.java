@@ -58,7 +58,7 @@ public class AuthController {
             model.addAttribute("displayName", displayName);
             return "register";
         }
-        investorService.registerInvestor(userId, displayName, new BigDecimal("1000000"));
+        investorService.registerInvestor(userId, displayName, BigDecimal.ZERO);
         session.setAttribute("CURRENT_USER", userId);
         return "redirect:/ipo/list";
     }

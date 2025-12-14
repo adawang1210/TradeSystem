@@ -4,6 +4,7 @@ import com.tradesystem.iposimulation.dto.ApplyIPOForm;
 import com.tradesystem.iposimulation.dto.IPOApplicationResult;
 import com.tradesystem.iposimulation.model.IPORecord;
 import com.tradesystem.iposimulation.model.Investor;
+import com.tradesystem.iposimulation.model.Status;
 import com.tradesystem.iposimulation.service.IPOService;
 import com.tradesystem.iposimulation.service.InvestorService;
 import jakarta.servlet.http.HttpSession;
@@ -41,21 +42,7 @@ public class IPOController {
             return redirect;
         }
         String currentUser = (String) session.getAttribute("CURRENT_USER");
-        Investor investor = investorService.findInvestor(currentUser)
-                .orElseThrow(() -> new IllegalStateException("Investor not found"));
-        List<IPORecord> existingRecords = ipoService.getHistory(currentUser);
-        Set<String> appliedStockIds = existingRecords.stream()
-                .map(IPORecord::getStockId)
-                .collect(Collectors.toSet());
-        List<com.tradesystem.iposimulation.model.IPOStock> ipos = ipoService.listIPOsForDisplay();
-        Map<String, String> stockNames = ipos.stream()
-                .collect(Collectors.toMap(stock -> stock.getStockId(), stock -> stock.getStockName()));
-        model.addAttribute("ipos", ipos);
-        model.addAttribute("applyForm", new ApplyIPOForm());
-        model.addAttribute("appliedStockIds", appliedStockIds);
-        model.addAttribute("investor", investor);
-        model.addAttribute("myRecords", existingRecords);
-        model.addAttribute("stockNames", stockNames);
+        populateListModel(model, currentUser);
         return "ipo/list";
     }
 
@@ -75,15 +62,19 @@ public class IPOController {
         }
         String currentUser = (String) session.getAttribute("CURRENT_USER");
         form.setInvestorId(currentUser);
-        IPOApplicationResult result = ipoService.apply(form);
-        if (!result.isSuccess()) {
-            model.addAttribute("flashMessage", result.getMessage());
-            model.addAttribute("ipos", ipoService.listIPOsForDisplay());
-            model.addAttribute("applyForm", new ApplyIPOForm());
-            return "ipo/list";
+        try {
+            IPOApplicationResult result = ipoService.apply(form);
+            if (!result.isSuccess()) {
+                model.addAttribute("flashError", result.getMessage());
+                populateListModel(model, currentUser);
+                return "ipo/list";
+            }
+            redirectAttributes.addFlashAttribute("flashMessage", result.getMessage());
+            return "redirect:/ipo/records";
+        } catch (IllegalStateException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+            return "redirect:/ipo/list";
         }
-        redirectAttributes.addFlashAttribute("flashMessage", result.getMessage());
-        return "redirect:/ipo/records";
     }
 
     @GetMapping("/ipo/records")
@@ -123,5 +114,25 @@ public class IPOController {
         }
         investorService.loginOrCreate(userId);
         return null;
+    }
+
+    private void populateListModel(Model model, String investorId) {
+        Investor investor = investorService.findInvestor(investorId)
+                .orElseThrow(() -> new IllegalStateException("Investor not found"));
+        List<IPORecord> existingRecords = ipoService.getHistory(investorId);
+        Set<String> appliedStockIds = existingRecords.stream()
+                .filter(record -> record.getStatus() == Status.PENDING || record.getStatus() == Status.WON)
+                .map(IPORecord::getStockId)
+                .collect(Collectors.toSet());
+        List<com.tradesystem.iposimulation.model.IPOStock> ipos = ipoService.listIPOsForDisplay();
+        Map<String, String> stockNames = ipos.stream()
+                .collect(Collectors.toMap(stock -> stock.getStockId(), stock -> stock.getStockName()));
+
+        model.addAttribute("ipos", ipos);
+        model.addAttribute("applyForm", new ApplyIPOForm());
+        model.addAttribute("appliedStockIds", appliedStockIds);
+        model.addAttribute("investor", investor);
+        model.addAttribute("myRecords", existingRecords);
+        model.addAttribute("stockNames", stockNames);
     }
 }

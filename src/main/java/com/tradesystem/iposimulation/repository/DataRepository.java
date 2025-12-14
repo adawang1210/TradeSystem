@@ -36,7 +36,7 @@ public class DataRepository {
     }
 
     private void seedDemoData() {
-        var investor = new Investor(nextInvestorId(), "Demo Investor", new BigDecimal("50000"));
+        var investor = new Investor(nextInvestorId(), "Demo Investor", BigDecimal.ZERO);
         investors.put(investor.getInvestorId(), investor);
 
         LocalDateTime now = LocalDateTime.now();
